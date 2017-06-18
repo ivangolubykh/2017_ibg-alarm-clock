@@ -115,8 +115,8 @@ class AlarmClock:
     ALmCGElI6M1E7oNriiQ711ZUYcJF4AWGQPR53GGhHBYSwIFv//Z'''
 
     def __init__(self, config_name=''):
-        self.config = {}
         self.config_name = 'ibg-alarm-clock_' + str(config_name) + '.cfg'
+        self._get_config()
         self._get_text()
 
         print(self.config_name)
@@ -139,13 +139,26 @@ class AlarmClock:
             language = self.config['language']
         else:
             language = getdefaultlocale()[0]
+            self.config['language'] = language
         if language == 'ru_RU':
             self.texts = ru_text
         else:
             self.texts = en_text
 
-    def _get_config():
-        pass
+    def _get_config(self):
+        if 'win' in sys.platform:
+            reestr = winreg.CreateKey(winreg.HKEY_CURRENT_USER,
+                                      'Software\\' + self.config_name)
+            self.config = json.loads(winreg.QueryValue(reestr, None))
+        else:
+            os.chdir(os.path.expanduser('~'))
+            file_path = os.path.join('.config/ibg-alarm-clock',
+                                     self.config_name)
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    self.config = json.loads(file.read())
+            else:
+                self.config = {}
 
     def _save_config(self):
         json_config = json.dumps(self.config)
