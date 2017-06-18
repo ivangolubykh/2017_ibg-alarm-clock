@@ -28,31 +28,7 @@ except ImportError:
     sys.exit()
 
 
-class Texts:
-    ''' Выбор языка текстов программы
-    '''
-    @staticmethod
-    def get(config=None):
-        ru_text = {'porgam_name': 'Будильник ИБГ',
-                   'about': 'О программе',
-                   'exit': 'Выход',
-                   'open_window': 'Показать будильники',
-                   }
-        en_text = {'porgam_name': 'IBG-Alarm-Clock',
-                   'about': 'About',
-                   'exit': 'Exit',
-                   'open_window': 'Show alarm clocks',
-                   }
-        if config:
-            language = config['language']
-        else:
-            language = getdefaultlocale()[0]
-        if language == 'ru_RU':
-            return ru_text
-        return en_text
-
-
-def main():
+class AlarmClock:
     _IMG_CLOCK_14_22_BASE64 = '''/9j/4AAQSkZJRgABAQEASABIAAD/4gxYSUNDX1BST0ZJT
     EUAAQEAAAxITGlubwIQAABtbnRyUkdCIFhZWiAHzgACAAkABgAxAABhY3NwTVNGVAAAAABJRUM
     gc1JHQgAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLUhQICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -133,25 +109,60 @@ def main():
     PO9u8SioMkngcVVOwtiMPvYjuhsdSQiwGcAcPywspK8cwCh1YAo4Yzl9ot6SVVRRpEAg5//xAA
     YEAEBAQEBAAAAAAAAAAAAAAABESEAQf/aAAgBAQABPxDcZMB9hHYcagIeHZ5TIiEwHNUU5KhGR
     ALmCGElI6M1E7oNriiQ711ZUYcJF4AWGQPR53GGhHBYSwIFv//Z'''
-    texts = Texts.get()
+
+    def __init__(self, config_name=''):
+        self.config_name = 'ibg-alarm-clock_' + str(config_name) + '.cfg'
+        self._get_text()
+
+        print(self.config_name)
+
+    def _get_text(self):
+        ''' Выбор языка текстов программы
+        '''
+        ru_text = {'porgam_name': 'Будильник ИБГ',
+                   'about': 'О программе',
+                   'exit': 'Выход',
+                   'open_window': 'Показать будильники',
+                   }
+        en_text = {'porgam_name': 'IBG-Alarm-Clock',
+                   'about': 'About',
+                   'exit': 'Exit',
+                   'open_window': 'Show alarm clocks',
+                   }
+        # if self.config:
+        if False:
+            language = self.config['language']
+        else:
+            language = getdefaultlocale()[0]
+        if language == 'ru_RU':
+            self.texts = ru_text
+        else:
+            self.texts = en_text
+
+    def _get_config():
+        pass
+
+    @staticmethod
+    def _setup(icon):
+        icon.visible = True
 
     def tray_exit():
-        tray_icon.stop()
+        self.tray_icon.stop()
         sys.exit()
 
-    def setup(icon):
-        tray_icon.visible = True
 
-    jpg_bytes = base64.b64decode(_IMG_CLOCK_14_22_BASE64.encode())
-    f = io.BytesIO(jpg_bytes)
-    _IMG_CLOCK_14_22 = Image.open(f)
-    tray_menu = pystray.Menu(pystray.MenuItem(texts['open_window'],
-                                              tray_exit),
-                             pystray.MenuItem(texts['exit'], tray_exit)
-                             )
-    tray_icon = pystray.Icon(texts['porgam_name'], icon=_IMG_CLOCK_14_22,
-                             menu=tray_menu)
-    tray_icon.run(setup)
+def main():
+    clock = AlarmClock()
+    # jpg_bytes = base64.b64decode(_IMG_CLOCK_14_22_BASE64.encode())
+    # f = io.BytesIO(jpg_bytes)
+    # _IMG_CLOCK_14_22 = Image.open(f)
+    # tray_menu = pystray.Menu(pystray.MenuItem(texts['open_window'],
+    #                                           tray_exit),
+    #                          pystray.MenuItem(texts['exit'], tray_exit)
+    #                          )
+    # tray_icon = pystray.Icon(texts['porgam_name'], icon=_IMG_CLOCK_14_22,
+    #                          menu=tray_menu)
+    # tray_icon.run(setup)
 
 
 if __name__ == '__main__':
