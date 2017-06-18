@@ -1,11 +1,15 @@
 #!/usr/bin/python3
 import base64
 import io
+import json
+import sys
+import os
 from tkinter import *
 from locale import getdefaultlocale
-import sys
 __author__ = 'Иван Голубых'
 __site__ = 'https://github.com/ivangolubykh/2017_ibg-alarm-clock'
+if 'win' in sys.platform:
+    import winreg
 try:
     from PIL import Image  # pip3 install Pillow
     import pystray  # pip3 install pystray
@@ -111,6 +115,7 @@ class AlarmClock:
     ALmCGElI6M1E7oNriiQ711ZUYcJF4AWGQPR53GGhHBYSwIFv//Z'''
 
     def __init__(self, config_name=''):
+        self.config = {}
         self.config_name = 'ibg-alarm-clock_' + str(config_name) + '.cfg'
         self._get_text()
 
@@ -142,16 +147,57 @@ class AlarmClock:
     def _get_config():
         pass
 
+    def _save_config(self):
+        json_config = json.dumps(self.config)
+        if 'win' in sys.platform:
+            reestr = winreg.SetValue(winreg.HKEY_CURRENT_USER,
+                                     'Software\\' + self.config_name,
+                                     winreg.REG_SZ,
+                                     json_config)
+        else:
+            os.chdir(os.path.expanduser('~'))
+            file_path = '.config/ibg-alarm-clock'
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
+            os.chdir(file_path)
+            with open(self.config_name, 'w', encoding='utf-8') as file:
+                file.write(json_config)
+
+    def _del_config(self):
+        if 'win' in sys.platform:
+            reestr = winreg.DeleteKey(winreg.HKEY_CURRENT_USER,
+                                      'Software\\' + self.config_name)
+        else:
+            os.chdir(os.path.expanduser('~'))
+            file_path = '.config/ibg-alarm-clock'
+            if os.path.exists(os.path.join(file_path, self.config_name)):
+                os.remove(os.path.join(file_path, self.config_name))
+                os.chdir(os.path.expanduser('~'))
+                os.removedirs(file_path)
+
     @staticmethod
     def _setup(icon):
         icon.visible = True
 
-    def tray_exit():
+    def _tray_exit():
         self.tray_icon.stop()
         sys.exit()
 
 
 def main():
+    try:
+        root = Tk()
+        del root
+    except Exception as a:
+        print('Please run the program from GUI-interface')
+        sys.exit()
+
+    if 'win' not in sys.platform and sys.platform != 'linux':
+        # Поддерживается только Windows и Linux
+        print('The operating system is not defined.'
+              ' Supported OS: Windows, Linux.')
+        sys.exit()
+
     clock = AlarmClock()
     # jpg_bytes = base64.b64decode(_IMG_CLOCK_14_22_BASE64.encode())
     # f = io.BytesIO(jpg_bytes)
@@ -166,10 +212,4 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        root = Tk()
-        del root
-    except Exception as a:
-        print('Please run the program from GUI-interface')
-        sys.exit()
     main()
