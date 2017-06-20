@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 import base64
-import io
 import json
 import sys
 import os
@@ -24,12 +23,12 @@ def is_gui():
 
 
 try:
-    from PIL import Image  # pip3 install Pillow
-    from PyQt5.QtWidgets import (QWidget, QProgressBar, QPushButton,
-                                 QApplication)  # pip3 install PyQt5
+    from PyQt5.QtWidgets import QWidget, QProgressBar, QPushButton,\
+        QApplication  # pip3 install PyQt5
+    from PyQt5.QtGui import QImage, QIcon, QPixmap
+    from PyQt5.QtCore import QByteArray
 except ImportError:
-    error_text = '''Please install PIL and PyQt5:
-        pip3 install Pillow
+    error_text = '''Please install PyQt5:
         pip3 install PyQt5'''
     print(error_text)
     if is_gui():
@@ -40,92 +39,49 @@ except ImportError:
         root.mainloop()
 
 
-class AlarmClock:
-    _IMG_CLOCK_14_22_BASE64 = '''/9j/4AAQSkZJRgABAQEASABIAAD/4gxYSUNDX1BST0ZJT
-    EUAAQEAAAxITGlubwIQAABtbnRyUkdCIFhZWiAHzgACAAkABgAxAABhY3NwTVNGVAAAAABJRUM
-    gc1JHQgAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLUhQICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABFjcHJ0AAABUAAAADNkZXNjAAABhAAAAGx3dHB0AAA
-    B8AAAABRia3B0AAACBAAAABRyWFlaAAACGAAAABRnWFlaAAACLAAAABRiWFlaAAACQAAAABRkb
-    W5kAAACVAAAAHBkbWRkAAACxAAAAIh2dWVkAAADTAAAAIZ2aWV3AAAD1AAAACRsdW1pAAAD+AA
-    AABRtZWFzAAAEDAAAACR0ZWNoAAAEMAAAAAxyVFJDAAAEPAAACAxnVFJDAAAEPAAACAxiVFJDA
-    AAEPAAACAx0ZXh0AAAAAENvcHlyaWdodCAoYykgMTk5OCBIZXdsZXR0LVBhY2thcmQgQ29tcGF
-    ueQAAZGVzYwAAAAAAAAASc1JHQiBJRUM2MTk2Ni0yLjEAAAAAAAAAAAAAABJzUkdCIElFQzYxO
-    TY2LTIuMQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-    AWFlaIAAAAAAAAPNRAAEAAAABFsxYWVogAAAAAAAAAAAAAAAAAAAAAFhZWiAAAAAAAABvogAAO
-    PUAAAOQWFlaIAAAAAAAAGKZAAC3hQAAGNpYWVogAAAAAAAAJKAAAA+EAAC2z2Rlc2MAAAAAAAA
-    AFklFQyBodHRwOi8vd3d3LmllYy5jaAAAAAAAAAAAAAAAFklFQyBodHRwOi8vd3d3LmllYy5ja
-    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABkZXNjAAAAAAA
-    AAC5JRUMgNjE5NjYtMi4xIERlZmF1bHQgUkdCIGNvbG91ciBzcGFjZSAtIHNSR0IAAAAAAAAAA
-    AAAAC5JRUMgNjE5NjYtMi4xIERlZmF1bHQgUkdCIGNvbG91ciBzcGFjZSAtIHNSR0IAAAAAAAA
-    AAAAAAAAAAAAAAAAAAAAAZGVzYwAAAAAAAAAsUmVmZXJlbmNlIFZpZXdpbmcgQ29uZGl0aW9uI
-    GluIElFQzYxOTY2LTIuMQAAAAAAAAAAAAAALFJlZmVyZW5jZSBWaWV3aW5nIENvbmRpdGlvbiB
-    pbiBJRUM2MTk2Ni0yLjEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHZpZXcAAAAAABOk/gAUX
-    y4AEM8UAAPtzAAEEwsAA1yeAAAAAVhZWiAAAAAAAEwJVgBQAAAAVx/nbWVhcwAAAAAAAAABAAA
-    AAAAAAAAAAAAAAAAAAAAAAo8AAAACc2lnIAAAAABDUlQgY3VydgAAAAAAAAQAAAAABQAKAA8AF
-    AAZAB4AIwAoAC0AMgA3ADsAQABFAEoATwBUAFkAXgBjAGgAbQByAHcAfACBAIYAiwCQAJUAmgC
-    fAKQAqQCuALIAtwC8AMEAxgDLANAA1QDbAOAA5QDrAPAA9gD7AQEBBwENARMBGQEfASUBKwEyA
-    TgBPgFFAUwBUgFZAWABZwFuAXUBfAGDAYsBkgGaAaEBqQGxAbkBwQHJAdEB2QHhAekB8gH6AgM
-    CDAIUAh0CJgIvAjgCQQJLAlQCXQJnAnECegKEAo4CmAKiAqwCtgLBAssC1QLgAusC9QMAAwsDF
-    gMhAy0DOANDA08DWgNmA3IDfgOKA5YDogOuA7oDxwPTA+AD7AP5BAYEEwQgBC0EOwRIBFUEYwR
-    xBH4EjASaBKgEtgTEBNME4QTwBP4FDQUcBSsFOgVJBVgFZwV3BYYFlgWmBbUFxQXVBeUF9gYGB
-    hYGJwY3BkgGWQZqBnsGjAadBq8GwAbRBuMG9QcHBxkHKwc9B08HYQd0B4YHmQesB78H0gflB/g
-    ICwgfCDIIRghaCG4IggiWCKoIvgjSCOcI+wkQCSUJOglPCWQJeQmPCaQJugnPCeUJ+woRCicKP
-    QpUCmoKgQqYCq4KxQrcCvMLCwsiCzkLUQtpC4ALmAuwC8gL4Qv5DBIMKgxDDFwMdQyODKcMwAz
-    ZDPMNDQ0mDUANWg10DY4NqQ3DDd4N+A4TDi4OSQ5kDn8Omw62DtIO7g8JDyUPQQ9eD3oPlg+zD
-    88P7BAJECYQQxBhEH4QmxC5ENcQ9RETETERTxFtEYwRqhHJEegSBxImEkUSZBKEEqMSwxLjEwM
-    TIxNDE2MTgxOkE8UT5RQGFCcUSRRqFIsUrRTOFPAVEhU0FVYVeBWbFb0V4BYDFiYWSRZsFo8Ws
-    hbWFvoXHRdBF2UXiReuF9IX9xgbGEAYZRiKGK8Y1Rj6GSAZRRlrGZEZtxndGgQaKhpRGncanhr
-    FGuwbFBs7G2MbihuyG9ocAhwqHFIcexyjHMwc9R0eHUcdcB2ZHcMd7B4WHkAeah6UHr4e6R8TH
-    z4faR+UH78f6iAVIEEgbCCYIMQg8CEcIUghdSGhIc4h+yInIlUigiKvIt0jCiM4I2YjlCPCI/A
-    kHyRNJHwkqyTaJQklOCVoJZclxyX3JicmVyaHJrcm6CcYJ0kneierJ9woDSg/KHEooijUKQYpO
-    ClrKZ0p0CoCKjUqaCqbKs8rAis2K2krnSvRLAUsOSxuLKIs1y0MLUEtdi2rLeEuFi5MLoIuty7
-    uLyQvWi+RL8cv/jA1MGwwpDDbMRIxSjGCMbox8jIqMmMymzLUMw0zRjN/M7gz8TQrNGU0njTYN
-    RM1TTWHNcI1/TY3NnI2rjbpNyQ3YDecN9c4FDhQOIw4yDkFOUI5fzm8Ofk6Njp0OrI67zstO2s
-    7qjvoPCc8ZTykPOM9Ij1hPaE94D4gPmA+oD7gPyE/YT+iP+JAI0BkQKZA50EpQWpBrEHuQjBCc
-    kK1QvdDOkN9Q8BEA0RHRIpEzkUSRVVFmkXeRiJGZ0arRvBHNUd7R8BIBUhLSJFI10kdSWNJqUn
-    wSjdKfUrESwxLU0uaS+JMKkxyTLpNAk1KTZNN3E4lTm5Ot08AT0lPk0/dUCdQcVC7UQZRUFGbU
-    eZSMVJ8UsdTE1NfU6pT9lRCVI9U21UoVXVVwlYPVlxWqVb3V0RXklfgWC9YfVjLWRpZaVm4Wgd
-    aVlqmWvVbRVuVW+VcNVyGXNZdJ114XcleGl5sXr1fD19hX7NgBWBXYKpg/GFPYaJh9WJJYpxi8
-    GNDY5dj62RAZJRk6WU9ZZJl52Y9ZpJm6Gc9Z5Nn6Wg/aJZo7GlDaZpp8WpIap9q92tPa6dr/2x
-    XbK9tCG1gbbluEm5rbsRvHm94b9FwK3CGcOBxOnGVcfByS3KmcwFzXXO4dBR0cHTMdSh1hXXhd
-    j52m3b4d1Z3s3gReG54zHkqeYl553pGeqV7BHtje8J8IXyBfOF9QX2hfgF+Yn7CfyN/hH/lgEe
-    AqIEKgWuBzYIwgpKC9INXg7qEHYSAhOOFR4Wrhg6GcobXhzuHn4gEiGmIzokziZmJ/opkisqLM
-    IuWi/yMY4zKjTGNmI3/jmaOzo82j56QBpBukNaRP5GokhGSepLjk02TtpQglIqU9JVflcmWNJa
-    flwqXdZfgmEyYuJkkmZCZ/JpomtWbQpuvnByciZz3nWSd0p5Anq6fHZ+Ln/qgaaDYoUehtqImo
-    pajBqN2o+akVqTHpTilqaYapoum/adup+CoUqjEqTepqaocqo+rAqt1q+msXKzQrUStuK4trqG
-    vFq+LsACwdbDqsWCx1rJLssKzOLOutCW0nLUTtYq2AbZ5tvC3aLfguFm40blKucK6O7q1uy67p
-    7whvJu9Fb2Pvgq+hL7/v3q/9cBwwOzBZ8Hjwl/C28NYw9TEUcTOxUvFyMZGxsPHQce/yD3IvMk
-    6ybnKOMq3yzbLtsw1zLXNNc21zjbOts83z7jQOdC60TzRvtI/0sHTRNPG1EnUy9VO1dHWVdbY1
-    1zX4Nhk2OjZbNnx2nba+9uA3AXcit0Q3ZbeHN6i3ynfr+A24L3hROHM4lPi2+Nj4+vkc+T85YT
-    mDeaW5x/nqegy6LzpRunQ6lvq5etw6/vshu0R7ZzuKO6070DvzPBY8OXxcvH/8ozzGfOn9DT0w
-    vVQ9d72bfb794r4Gfio+Tj5x/pX+uf7d/wH/Jj9Kf26/kv+3P9t////2wBDAAIBAQEBAQIBAQE
-    CAgICAgQDAgICAgUEBAMEBgUGBgYFBgYGBwkIBgcJBwYGCAsICQoKCgoKBggLDAsKDAkKCgr/2
-    wBDAQICAgICAgUDAwUKBwYHCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgo
-    KCgoKCgoKCgoKCgr/wgARCAAWAA4DAREAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAABQYHC
-    P/EABgBAAMBAQAAAAAAAAAAAAAAAAMEBQAC/9oADAMBAAIQAxAAAAGzK1Gugk7YRbseNqDtEIt
-    //8QAGRABAAMBAQAAAAAAAAAAAAAABgQFBwID/9oACAEBAAEFAkI4LFV5oVKwb1TB8UEk33C4r
-    2e41dSwxHV4zZX/AP/EACMRAAAFBAICAwAAAAAAAAAAAAECAwQFABESMUFRBmETIeH/2gAIAQM
-    BAT8BhYFrMKKAY+Jg+9XuHe+6fR7eOkDopDljYL++Q51SS6zdYDomxMHNAN6ivIm0OdTJDMwju
-    /4NOpNvJvxVSS+O4a996Cv/xAApEQABAgUDAgYDAAAAAAAAAAABAhEDBAYhMQAFEgcyEyJBQmG
-    BFHGR/9oACAECAQE/Aau6k1HSG3SapbkqEQUE8uPFSSSE9pyghv0R7dSVVb1U9My8xPuOalKCS
-    X8valWBnzN8XwdKk5OakVpnUBcJVuJ9xF/rjl/rBOpqGpCgrKTizWxj0ZmYWDWs2qg6Q7vW23y
-    a4e4+DDEPs4EuVKKnLKD2UB8aVQu40ZTMKBNzf5DRCxYiyki1yp24fy3pr//EACwQAAEDAgMGB
-    QUAAAAAAAAAAAECAwQFEQASEwYUISIxYRU0QUKjgpGTobH/2gAIAQEABj8Cqaq3sBBkvS5W8tv
-    OKPOhSEXP5A5/fXEyubP7KM0+0RuOVM3spRUpahx7aX3w1Q2GxvLY1jKI8ug3H1ZrEZexPtGPD
-    IsNMZcM6b8ULzaauvX3XvmzdTfjxuMVqkuUuZyVVQVkcFlFCENX+P8AffEymtQX05aWg6rywTZ
-    Dhsn5Tj//xAAdEAEBAAIDAAMAAAAAAAAAAAABESExAEFhUYGR/9oACAEBAAE/ITyougKJpyz09
-    SP5o9AJupjS0QPOG5jvsMumbkX4wVzpfcEhdkEkXJOvDkpCpDMp2uOhQYh0D9r5iHP/2gAMAwE
-    AAgADAAAAEFw8P//EABwRAQEAAwEBAQEAAAAAAAAAAAERACExQVFxgf/aAAgBAwEBPxA7yQHQI
-    8OCJNUfcPCAgJ9QvoDvtHZiwqoOg6f28n96GPd7d1rXdX29rt93n35CBAAgMqisS6vMiqBQiIW
-    6AWlJ0Xrn/8QAGxEBAQEAAgMAAAAAAAAAAAAAAREhADFBUXH/2gAIAQIBAT8QgG2GFQ7KLXQXa
-    PO9u8SioMkngcVVOwtiMPvYjuhsdSQiwGcAcPywspK8cwCh1YAo4Yzl9ot6SVVRRpEAg5//xAA
-    YEAEBAQEBAAAAAAAAAAAAAAABESEAQf/aAAgBAQABPxDcZMB9hHYcagIeHZ5TIiEwHNUU5KhGR
-    ALmCGElI6M1E7oNriiQ711ZUYcJF4AWGQPR53GGhHBYSwIFv//Z'''
+class AlarmClock(QWidget):
+    _IMG_CLOCK_48X48_BASE64 = '''R0lGODlhMAAwAOf/AAASrgATrwAUsAAWqQAXqgkXtAAas
+    QAbswAcqwActAAerQAetgAgrwAhsQAiqgAisgMjswgktAwlrQwltQAqpwAptgAqrgAqrwAqtwA
+    rsQAtpAAtswAurBcqowwvthAxsAA3rBIyqRMysRg0pQc5thw0tB02pws6tw46sSA2tiA3sBM7u
+    RQ8syM5qxY8uhg+rQtEuR0/tyJBuSNCsxNGvDFBrjFDqChFtipFvi1HuTFLthVP4jJMsTNNsjN
+    OrCxRvDhPvC5SvTlSsSRU4SZU8BRZ9DxVtCpW6z9VvB1b7y1X7TtU7DFZ7iNd8URZwENaukJbt
+    DRa8CZe8jZb8UVcvDZc6yhg7Tdd5Tdc80ZdvTle5kdfuDle7UhguT1i40xjvUZlxEFj7E5lv0F
+    l5k1muVBkxVNlszho70Vo41JqvllpuElp7FBvyVZuwkxu41lwxFtyxmBzu1F04Vh01VRz71xz4
+    l12xFV08F132WZ4wWJ65Gh9v2B92Gl+wGh91HF/vWyAw25/yW+Aym6CxWaC3nCEx3aIv3WJzHu
+    JyHmJ1ICJwm+M4nyNxH+QyH+P24CRyX6R1YWSxIOUzH6U5YWWzo6Vw4eY0ImX1oyYy4ma05Cfy
+    5Ke0Yqg3pSg046g5pigzpqlzJam0pqm2pmp1aCr0p6u26uuy6ev0KGw3aOv462wzauzyKuy1Ki
+    z2661yq+22LK20qi45bG4za651LG42rS41K654ba51au76K+74ra+07bB3LfC3b7F27/G3MHF4
+    rvH4r/G6cDH3b7J5cDL5sXN4srO3cvP7MbR7cnR5s3R7sfT7srW8dPX59HZ79TZ6dLa8Nbb3dP
+    b8dTc8t3e6Nvg497f6eHf49/g6uPh5eLi7eTl7+nm6+bo5ebn8evo7eXq7ebq++nq9O3s4+zs9
+    +/s8evu6u3t+Orv8u/v5fHw5vPx9e7z9vHz8PTy9u/19/b0+PL3+vb49fX6/fj69/z5/vb7/vn
+    7+Pf9//v9+vj+///+9fz/+///9v7//P///yH5BAEKAP8ALAAAAAAwADAAAAj+AP0JHEhQoCYLE
+    RIqXMiwYYQQwwpKnDgQXgqHGDOWocixoB0DCQ2IHEmy5MiEBEZ1XCmwVQQa0dLJnEmzpjpfIiy
+    AY8kSVwRiPAsOsiAuaEdeP40ODOThnFKKyyLYeurvTQl3VCVya0CJ6hMX97JKZEDG3zE8c9KqX
+    ZuWkDZ/MnqIlQiFgr8wXPLq3at3SiJ/BB7NLVgrQDU/U/gq5hIl1SkA3QYTtGehkLEji/kSaWd
+    jhuSCSGD4Q5N5Lx9xFTJ9JigMQDFPiUtzYRaJwc7VA7dYGIc5sxQv5gg0wk0QWwRLsaJkPtKMC
+    ot8xAlqGlDMjRTFUyaRQlAsesE8G6j+DVF8RVeEV94lskGBqsheLa4kYEo/0YmOStfzkqrAiD7
+    FNjmMssMQu3AAin8c9SDKPv58kQeCHNXTgT/ymAAhR/rcYI0ph1xIkT4ybDOLIB5OhI6F/mhQY
+    kHsqECLQHk8saJA9gDxBUEv/LGiPThsUdA6IsTh4T1GBAFdQeVw0MeFYpAAD0XPRPAJgoZI8E1
+    HvSAwC33NRKDSSmmUQE96PqC40j4I7OHdLQY8E1QnDLxF3A854DNQPOEk44oszpATlkDeVCAJc
+    fZIgMhAl5zBWBRRSGHFGlMJ5EMLxLESQDb+fCOHcostsYg9/sACwDW4GcGBQHXIlhckAiGgyGq
+    F+zCghj+c9CbbEcHApcNq2zSAiTyq7qWHP1SsMM9nyESQyzTB6jUGPnBc9RlSxCiTX7P1CNLUZ
+    z798g4edNwh7rjkikuHI/4AQtRnoUTAAjDQSCPvvPTWq4oFFkQjmRkBRDCBSQCTdABKm8wVDwk
+    ZJcwQGIOVggIIEEcs8cQUg1BDMh0FBAA7'''
 
     def __init__(self, config_name=''):
+        super().__init__()
         self.config_name = 'ibg-alarm-clock_' + str(config_name) + '.cfg'
         self._get_config()
         self._get_text()
+        self.setGeometry(120, 150, 300, 150)
+        self.setWindowTitle(self.texts['porgam_name'])
+
+        self._icon_bytes64 = base64.b64decode(__class__.
+                                              _IMG_CLOCK_48X48_BASE64.
+                                              encode())
+        self._icon_bytes = QByteArray(self._icon_bytes64)
+        self._icon_image = QImage.fromData(self._icon_bytes, "GIF")
+        self.setWindowIcon(QIcon(QPixmap.fromImage(self._icon_image)))
 
     def _get_text(self):
         ''' Выбор языка текстов программы
@@ -194,14 +150,6 @@ class AlarmClock:
                 os.chdir(os.path.expanduser('~'))
                 os.removedirs(file_path)
 
-    @staticmethod
-    def _setup(icon):
-        icon.visible = True
-
-    def _tray_exit():
-        self.tray_icon.stop()
-        sys.exit()
-
 
 def main():
     is_gui()
@@ -212,8 +160,10 @@ def main():
               ' Supported OS: Windows, Linux.')
         sys.exit()
 
+    app = QApplication(sys.argv)
     clock = AlarmClock()
-
+    clock.show()
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
     main()
