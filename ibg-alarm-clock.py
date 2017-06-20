@@ -4,32 +4,40 @@ import io
 import json
 import sys
 import os
-from tkinter import *
+from tkinter import Tk, Label
 from locale import getdefaultlocale
 __author__ = 'Иван Голубых'
 __site__ = 'https://github.com/ivangolubykh/2017_ibg-alarm-clock'
 if 'win' in sys.platform:
     import winreg
+
+
+def is_gui():
+    try:
+        root = Tk()
+        root.destroy()
+        del root
+    except Exception as a:
+        print('Please run the program from GUI-interface')
+        sys.exit()
+    return True
+
+
 try:
     from PIL import Image  # pip3 install Pillow
-    import pystray  # pip3 install pystray
-# except ModuleNotFoundError:
+    from PyQt5.QtWidgets import (QWidget, QProgressBar, QPushButton,
+                                 QApplication)  # pip3 install PyQt5
 except ImportError:
-    error_text = '''Please install PIL and systray:
+    error_text = '''Please install PIL and PyQt5:
         pip3 install Pillow
-        pip3 install pystray'''
+        pip3 install PyQt5'''
     print(error_text)
-
-    try:
+    if is_gui():
         root = Tk()
         root.title('IBG-Alarm-Clock')
         vidj_error_text = Label(root, text=error_text)
         vidj_error_text.place(x=5, y=5)
         root.mainloop()
-    except Exception as a:
-        print('Please run the program from GUI-interface')
-
-    sys.exit()
 
 
 class AlarmClock:
@@ -119,8 +127,6 @@ class AlarmClock:
         self._get_config()
         self._get_text()
 
-        print(self.config_name)
-
     def _get_text(self):
         ''' Выбор языка текстов программы
         '''
@@ -198,12 +204,7 @@ class AlarmClock:
 
 
 def main():
-    try:
-        root = Tk()
-        del root
-    except Exception as a:
-        print('Please run the program from GUI-interface')
-        sys.exit()
+    is_gui()
 
     if 'win' not in sys.platform and sys.platform != 'linux':
         # Поддерживается только Windows и Linux
@@ -212,16 +213,6 @@ def main():
         sys.exit()
 
     clock = AlarmClock()
-    # jpg_bytes = base64.b64decode(_IMG_CLOCK_14_22_BASE64.encode())
-    # f = io.BytesIO(jpg_bytes)
-    # _IMG_CLOCK_14_22 = Image.open(f)
-    # tray_menu = pystray.Menu(pystray.MenuItem(texts['open_window'],
-    #                                           tray_exit),
-    #                          pystray.MenuItem(texts['exit'], tray_exit)
-    #                          )
-    # tray_icon = pystray.Icon(texts['porgam_name'], icon=_IMG_CLOCK_14_22,
-    #                          menu=tray_menu)
-    # tray_icon.run(setup)
 
 
 if __name__ == '__main__':
