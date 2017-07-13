@@ -78,6 +78,20 @@ class AlarmClock(QMainWindow):
     F+zCghj+c9CbbEcHApcNq2zSAiTyq7qWHP1SsMM9nyESQyzTB6jUGPnBc9RlSxCiTX7P1CNLUZ
     z798g4edNwh7rjkikuHI/4AQtRnoUTAAjDQSCPvvPTWq4oFFkQjmRkBRDCBSQCTdABKm8wVDwk
     ZJcwQGIOVggIIEEcs8cQUg1BDMh0FBAA7'''
+    _IMG_EXIT_24X24_BASE64 = '''R0lGODlhGAAYAMZqAAGsKAKsKQOsKgStKwWtLAatLQeuLQ
+    iuLgmuLwqvMAuvMQ+wNBGxNhKxNxOyOBSyOBazOhezOxizPBm0PRq0PR21QB+2QiC2QiG2QyK3
+    RCe4SCy6TS26TTO8UzS8UzW9VDa9VTe9Vjm+WDu/WT2/Wz7AXETCYUbCY0nDZUvEZ0zEaE3FaE
+    /FalDGa1THblzJdV3Kdl/KeGHLeWLLemTMfGnOgHDQhnbSi3rTjnvUj4LWlYPWlobXmIrYnI7a
+    n5Lbo5fdp5veqp7fraHgr6LgsKXhs6rjt63kua7kuq/ku7PmvrTmv7jnw7zpxr3px8DqycHqys
+    PrzMjt0Mrt0svu08zu1M3u1NTx2tbx3Nny3try39zz4d704+L15uf36ur47fH68/P79Pb89/f8
+    +Pn9+fr9+vv9+/z+/P3+/f7+/v////////////////////////////////////////////////
+    ///////////////////////////////////////yH5BAEKAH8ALAAAAAAYABgAQAf+gACCggMH
+    BocGBwmJCIcHAYORABNqHwBbajySAEpqLZsANR4RERSCJWpkJQAbY2pqK6CTZK+1ryODRrCyE7
+    RqaZFRtrugF2XDtl9LTGcmvL61TVRaghZixJu9akgHAwMGBQYEMmevsaAVVUVmaj+RV2ousoMQ
+    0AAWYA4AOrbnkRocTiCrdUTQEmyRqJQRw7ChGDJZBDnJMQ8AgydTMk6pQoSGFCpFrky5QuLZMC
+    BpQAwKgjCSNjVbqFSpYiWJiBRDzD3DsoDCDhyShOgEhcEdSy8WBoXoAUBAjAcmfzUYNONXLRZR
+    gQEgAADFMH+RArSodQVABjU+ACiAUgusoBszLzpsmMtBRZdXYQTZGLpJArRhaGAAiFDGLSElaQ
+    aq4XIBgJAboAxEaEC5MmV9AAxAABUIADs='''
 
     def __init__(self, config_name=''):
         super().__init__()
@@ -85,7 +99,9 @@ class AlarmClock(QMainWindow):
         self._get_config()
         self._get_text()
         self._create_icon_windows()
+        self.statusBar()
         self._create_menu()
+        self._create_toolbar()
         self.setGeometry(120, 150, 300, 150)
         self.setWindowTitle(self.texts['porgam_name'])
         self.show()
@@ -99,6 +115,7 @@ class AlarmClock(QMainWindow):
                    'open_window': 'Показать будильники',
                    'menu_file': 'Файл',
                    'menu_exit': 'Выход',
+                   'menu_exit_statusbar': 'Выход из программы',
                    }
         en_text = {'porgam_name': 'IBG-Alarm-Clock',
                    'about': 'About',
@@ -106,6 +123,7 @@ class AlarmClock(QMainWindow):
                    'open_window': 'Show alarm clocks',
                    'menu_file': 'File',
                    'menu_exit': 'Exit',
+                   'menu_exit_statusbar': 'Exit application',
                    }
         if not hasattr(self, 'config'):
             self.config = {}
@@ -159,23 +177,41 @@ class AlarmClock(QMainWindow):
                 os.chdir(os.path.expanduser('~'))
                 os.removedirs(file_path)
 
+    @staticmethod
+    def _base64_to_qimge(base64_text, format='GIF'):
+        icon_bytes64 = base64.b64decode(base64_text.encode())
+        icon_bytes = QByteArray(icon_bytes64)
+        return QImage.fromData(icon_bytes, format)
+
     def _create_icon_windows(self):
         '''Создание иконки в верхнем левом углу окна в ОС Windows'''
-        self._icon_bytes64 = base64.b64decode(__class__.
-                                              _IMG_CLOCK_48X48_BASE64.
-                                              encode())
-        self._icon_bytes = QByteArray(self._icon_bytes64)
-        self._icon_image = QImage.fromData(self._icon_bytes, "GIF")
-        self.setWindowIcon(QIcon(QPixmap.fromImage(self._icon_image)))
+        self.setWindowIcon(
+            QIcon(QPixmap.fromImage(
+                self.__class__._base64_to_qimge(self._IMG_CLOCK_48X48_BASE64,
+                                                'GIF'))))
+
+    def _get_menu_method(self):
+        methods = {}
+        # methods['exit_action'] = QAction(QIcon('exit.png'), '&Exit', self)
+        methods['exit_action'] = \
+            QAction(
+                QIcon(
+                    QPixmap.fromImage(
+                        self._base64_to_qimge(self._IMG_EXIT_24X24_BASE64,
+                                              'GIF'))),
+                self.texts['menu_exit'], self)
+        methods['exit_action'].setStatusTip(self.texts['menu_exit_statusbar'])
+        methods['exit_action'].triggered.connect(qApp.quit)
+        return methods
 
     def _create_menu(self):
-        # exit_action = QAction(QIcon('exit.png'), '&Exit', self)
-        exit_action = QAction(QIcon(QPixmap.fromImage(self._icon_image)),
-                              self.texts['menu_exit'], self)
-        exit_action.triggered.connect(qApp.quit)
         menubar = self.menuBar()
         fileMenu = menubar.addMenu(self.texts['menu_file'])
-        fileMenu.addAction(exit_action)
+        fileMenu.addAction(self._get_menu_method()['exit_action'])
+
+    def _create_toolbar(self):
+        self.toolbar = self.addToolBar('Exit')
+        self.toolbar.addAction(self._get_menu_method()['exit_action'])
 
 
 @is_gui
