@@ -128,6 +128,109 @@ class AlarmClock(QMainWindow):
         self.setWindowTitle(self.texts['porgam_name'])
         self.show()
 
+    @staticmethod
+    def _base64_to_qimge(base64_text, format='GIF'):
+        icon_bytes64 = base64.b64decode(base64_text.encode())
+        icon_bytes = QByteArray(icon_bytes64)
+        return QImage.fromData(icon_bytes, format)
+
+    def _create_icon_windows(self):
+        '''Создание иконки в верхнем левом углу окна в ОС Windows, а так же
+        иконки панели задач для Linux'''
+        self.setWindowIcon(
+            QIcon(QPixmap.fromImage(
+                self.__class__._base64_to_qimge(self._IMG_CLOCK_48X48_BASE64,
+                                                'GIF'))))
+
+    def _create_menu(self):
+        menubar = self.menuBar()
+        file_menu = menubar.addMenu(self.texts['menu_file'])
+        file_menu.addAction(self.methods['exit_action'])
+
+        setting_menu = menubar.addMenu(self.texts['menu_setting'])
+        lng_settings_menu = setting_menu.addMenu(self.
+                                                 texts['menu_setting_lang'])
+        lng_settings_menu.addAction(self.methods['lang_setting_action_en'])
+        lng_settings_menu.addAction(self.methods['lang_setting_action_ru'])
+        setting_menu.addAction(self.methods['reset_setting_action'])
+
+    def _create_toolbar(self):
+        self.toolbar = self.addToolBar('Exit')
+        self.toolbar.addAction(self.methods['exit_action'])
+
+    def _del_config(self):
+        if 'win' in sys.platform:
+            reestr = winreg.DeleteKey(winreg.HKEY_CURRENT_USER,
+                                      'Software\\' + self.config_name)
+        else:
+            os.chdir(os.path.expanduser('~'))
+            file_path = '.config/ibg-alarm-clock'
+            if os.path.exists(os.path.join(file_path, self.config_name)):
+                os.remove(os.path.join(file_path, self.config_name))
+                os.chdir(os.path.expanduser('~'))
+                os.removedirs(file_path)
+
+    def _get_config(self):
+        if 'win' in sys.platform:
+            reestr = winreg.CreateKey(winreg.HKEY_CURRENT_USER,
+                                      'Software\\' + self.config_name)
+            self.config = json.loads(winreg.QueryValue(reestr, None))
+        else:
+            os.chdir(os.path.expanduser('~'))
+            file_path = os.path.join('.config/ibg-alarm-clock',
+                                     self.config_name)
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    self.config = json.loads(file.read())
+            else:
+                self.config = {}
+
+    def _get_menu_method(self, a=True):
+        self.methods = {}
+        # methods['exit_action'] = QAction(QIcon('exit.png'), '&Exit', self)
+        self.methods['exit_action'] = \
+            QAction(
+                QIcon(
+                    QPixmap.fromImage(
+                        self._base64_to_qimge(self._IMG_EXIT_24X24_BASE64,
+                                              'GIF'))),
+                self.texts['menu_exit'], self)
+        self.methods['exit_action'].\
+            setStatusTip(self.texts['menu_exit_statusbar'])
+        self.methods['exit_action'].triggered.connect(qApp.quit)
+
+        self.methods['lang_setting_action_en'] = \
+            QAction(self.texts['menu_setting_lang_en'], self)
+        self.methods['lang_setting_action_en'].\
+            setStatusTip(self.texts['menu_setting_lang_en_statusbar'])
+        self.methods['lang_setting_action_en'].triggered.\
+            connect(self._set_language_en)
+        lang_status = True if self.config['language'] == 'en_EN' else False
+        self.methods['lang_setting_action_en'].setCheckable(True)
+        self.methods['lang_setting_action_en'].setChecked(lang_status)
+
+        self.methods['lang_setting_action_ru'] = \
+            QAction(self.texts['menu_setting_lang_ru'], self)
+        self.methods['lang_setting_action_ru'].\
+            setStatusTip(self.texts['menu_setting_lang_ru_statusbar'])
+        self.methods['lang_setting_action_ru'].triggered.\
+            connect(self._set_language_ru)
+        lang_status = True if self.config['language'] == 'ru_RU' else False
+        self.methods['lang_setting_action_ru'].setCheckable(True)
+        self.methods['lang_setting_action_ru'].setChecked(lang_status)
+
+        self.methods['reset_setting_action'] = \
+            QAction(
+                QIcon(
+                    QPixmap.fromImage(
+                        self._base64_to_qimge(self._IMG_RESET_24X24_BASE64,
+                                              'GIF'))),
+                self.texts['menu_setting_reset'], self)
+        self.methods['reset_setting_action'].\
+            setStatusTip(self.texts['menu_setting_reset_statusbar'])
+        self.methods['reset_setting_action'].\
+            triggered.connect(self._reset_settings)
+
     def _get_text(self):
         ''' Выбор языка текстов программы
         '''
@@ -177,20 +280,9 @@ class AlarmClock(QMainWindow):
         else:
             self.texts = en_text
 
-    def _get_config(self):
-        if 'win' in sys.platform:
-            reestr = winreg.CreateKey(winreg.HKEY_CURRENT_USER,
-                                      'Software\\' + self.config_name)
-            self.config = json.loads(winreg.QueryValue(reestr, None))
-        else:
-            os.chdir(os.path.expanduser('~'))
-            file_path = os.path.join('.config/ibg-alarm-clock',
-                                     self.config_name)
-            if os.path.exists(file_path):
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    self.config = json.loads(file.read())
-            else:
-                self.config = {}
+    def _reset_settings(self):
+        self._del_config()
+        self.__init__()
 
     def _save_config(self):
         json_config = json.dumps(self.config)
@@ -208,109 +300,17 @@ class AlarmClock(QMainWindow):
             with open(self.config_name, 'w', encoding='utf-8') as file:
                 file.write(json_config)
 
-    def _del_config(self):
-        if 'win' in sys.platform:
-            reestr = winreg.DeleteKey(winreg.HKEY_CURRENT_USER,
-                                      'Software\\' + self.config_name)
-        else:
-            os.chdir(os.path.expanduser('~'))
-            file_path = '.config/ibg-alarm-clock'
-            if os.path.exists(os.path.join(file_path, self.config_name)):
-                os.remove(os.path.join(file_path, self.config_name))
-                os.chdir(os.path.expanduser('~'))
-                os.removedirs(file_path)
-
-    @staticmethod
-    def _base64_to_qimge(base64_text, format='GIF'):
-        icon_bytes64 = base64.b64decode(base64_text.encode())
-        icon_bytes = QByteArray(icon_bytes64)
-        return QImage.fromData(icon_bytes, format)
-
-    def _create_icon_windows(self):
-        '''Создание иконки в верхнем левом углу окна в ОС Windows, а так же
-        иконки панели задач для Linux'''
-        self.setWindowIcon(
-            QIcon(QPixmap.fromImage(
-                self.__class__._base64_to_qimge(self._IMG_CLOCK_48X48_BASE64,
-                                                'GIF'))))
-
-    def _get_menu_method(self, a=True):
-        self.methods = {}
-        # methods['exit_action'] = QAction(QIcon('exit.png'), '&Exit', self)
-        self.methods['exit_action'] = \
-            QAction(
-                QIcon(
-                    QPixmap.fromImage(
-                        self._base64_to_qimge(self._IMG_EXIT_24X24_BASE64,
-                                              'GIF'))),
-                self.texts['menu_exit'], self)
-        self.methods['exit_action'].\
-            setStatusTip(self.texts['menu_exit_statusbar'])
-        self.methods['exit_action'].triggered.connect(qApp.quit)
-
-        self.methods['lang_setting_action_en'] = \
-            QAction(self.texts['menu_setting_lang_en'], self)
-        self.methods['lang_setting_action_en'].\
-            setStatusTip(self.texts['menu_setting_lang_en_statusbar'])
-        self.methods['lang_setting_action_en'].triggered.\
-            connect(self._set_language_en)
-        lang_status = True if self.config['language'] == 'en_EN' else False
-        self.methods['lang_setting_action_en'].setCheckable(True)
-        self.methods['lang_setting_action_en'].setChecked(lang_status)
-
-        self.methods['lang_setting_action_ru'] = \
-            QAction(self.texts['menu_setting_lang_ru'], self)
-        self.methods['lang_setting_action_ru'].\
-            setStatusTip(self.texts['menu_setting_lang_ru_statusbar'])
-        self.methods['lang_setting_action_ru'].triggered.\
-            connect(self._set_language_ru)
-        lang_status = True if self.config['language'] == 'ru_RU' else False
-        self.methods['lang_setting_action_ru'].setCheckable(True)
-        self.methods['lang_setting_action_ru'].setChecked(lang_status)
-
-        self.methods['reset_setting_action'] = \
-            QAction(
-                QIcon(
-                    QPixmap.fromImage(
-                        self._base64_to_qimge(self._IMG_RESET_24X24_BASE64,
-                                              'GIF'))),
-                self.texts['menu_setting_reset'], self)
-        self.methods['reset_setting_action'].\
-            setStatusTip(self.texts['menu_setting_reset_statusbar'])
-        self.methods['reset_setting_action'].\
-            triggered.connect(self._reset_settings)
-
-    def _create_menu(self):
-        menubar = self.menuBar()
-        file_menu = menubar.addMenu(self.texts['menu_file'])
-        file_menu.addAction(self.methods['exit_action'])
-
-        setting_menu = menubar.addMenu(self.texts['menu_setting'])
-        lng_settings_menu = setting_menu.addMenu(self.
-                                                 texts['menu_setting_lang'])
-        lng_settings_menu.addAction(self.methods['lang_setting_action_en'])
-        lng_settings_menu.addAction(self.methods['lang_setting_action_ru'])
-        setting_menu.addAction(self.methods['reset_setting_action'])
-
-    def _create_toolbar(self):
-        self.toolbar = self.addToolBar('Exit')
-        self.toolbar.addAction(self.methods['exit_action'])
-
     def _set_language(self, lang):
         self.config['language'] = lang
         self._save_config()
         self.__init__()
         # self.methods['lang_setting_action_ru'].setChecked(lang)
 
-    def _set_language_ru(self, lang):
-        self._set_language('ru_RU')
-
     def _set_language_en(self, lang):
         self._set_language('en_EN')
 
-    def _reset_settings(self):
-        self._del_config()
-        self.__init__()
+    def _set_language_ru(self, lang):
+        self._set_language('ru_RU')
 
 
 @is_gui
