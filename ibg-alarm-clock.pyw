@@ -27,8 +27,8 @@ def is_gui(function_to_decorate):
 
 
 try:
-    from PyQt5.QtWidgets import QWidget, QProgressBar, QPushButton,\
-        QApplication  # pip3 install PyQt5
+    from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, \
+        qApp  # pip3 install PyQt5
     from PyQt5.QtGui import QImage, QIcon, QPixmap
     from PyQt5.QtCore import QByteArray
 except ImportError:
@@ -50,7 +50,7 @@ except ImportError:
     sys.exit()
 
 
-class AlarmClock(QWidget):
+class AlarmClock(QMainWindow):
     _IMG_CLOCK_48X48_BASE64 = '''R0lGODlhMAAwAOf/AAASrgATrwAUsAAWqQAXqgkXtAAas
     QAbswAcqwActAAerQAetgAgrwAhsQAiqgAisgMjswgktAwlrQwltQAqpwAptgAqrgAqrwAqtwA
     rsQAtpAAtswAurBcqowwvthAxsAA3rBIyqRMysRg0pQc5thw0tB02pws6tw46sSA2tiA3sBM7u
@@ -84,15 +84,11 @@ class AlarmClock(QWidget):
         self.config_name = 'ibg-alarm-clock_' + str(config_name) + '.cfg'
         self._get_config()
         self._get_text()
+        self._create_icon_windows()
+        self._create_menu()
         self.setGeometry(120, 150, 300, 150)
         self.setWindowTitle(self.texts['porgam_name'])
-
-        self._icon_bytes64 = base64.b64decode(__class__.
-                                              _IMG_CLOCK_48X48_BASE64.
-                                              encode())
-        self._icon_bytes = QByteArray(self._icon_bytes64)
-        self._icon_image = QImage.fromData(self._icon_bytes, "GIF")
-        self.setWindowIcon(QIcon(QPixmap.fromImage(self._icon_image)))
+        self.show()
 
     def _get_text(self):
         ''' Выбор языка текстов программы
@@ -101,11 +97,15 @@ class AlarmClock(QWidget):
                    'about': 'О программе',
                    'exit': 'Выход',
                    'open_window': 'Показать будильники',
+                   'menu_file': 'Файл',
+                   'menu_exit': 'Выход',
                    }
         en_text = {'porgam_name': 'IBG-Alarm-Clock',
                    'about': 'About',
                    'exit': 'Exit',
                    'open_window': 'Show alarm clocks',
+                   'menu_file': 'File',
+                   'menu_exit': 'Exit',
                    }
         if not hasattr(self, 'config'):
             self.config = {}
@@ -159,6 +159,24 @@ class AlarmClock(QWidget):
                 os.chdir(os.path.expanduser('~'))
                 os.removedirs(file_path)
 
+    def _create_icon_windows(self):
+        '''Создание иконки в верхнем левом углу окна в ОС Windows'''
+        self._icon_bytes64 = base64.b64decode(__class__.
+                                              _IMG_CLOCK_48X48_BASE64.
+                                              encode())
+        self._icon_bytes = QByteArray(self._icon_bytes64)
+        self._icon_image = QImage.fromData(self._icon_bytes, "GIF")
+        self.setWindowIcon(QIcon(QPixmap.fromImage(self._icon_image)))
+
+    def _create_menu(self):
+        # exit_action = QAction(QIcon('exit.png'), '&Exit', self)
+        exit_action = QAction(QIcon(QPixmap.fromImage(self._icon_image)),
+                              self.texts['menu_exit'], self)
+        exit_action.triggered.connect(qApp.quit)
+        menubar = self.menuBar()
+        fileMenu = menubar.addMenu(self.texts['menu_file'])
+        fileMenu.addAction(exit_action)
+
 
 @is_gui
 def main():
@@ -170,7 +188,6 @@ def main():
 
     app = QApplication(sys.argv)
     clock = AlarmClock()
-    clock.show()
     sys.exit(app.exec_())
 
 
