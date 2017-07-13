@@ -11,7 +11,10 @@ if 'win' in sys.platform:
     import winreg
 
 
-def is_gui():
+def is_gui(function_to_decorate):
+    def wrapper(*args, **kwargs):
+        function_to_decorate(*args, **kwargs)
+
     try:
         root = Tk()
         root.destroy()
@@ -19,7 +22,8 @@ def is_gui():
     except Exception as a:
         print('Please run the program from GUI-interface')
         sys.exit()
-    return True
+    else:
+        return wrapper
 
 
 try:
@@ -28,15 +32,22 @@ try:
     from PyQt5.QtGui import QImage, QIcon, QPixmap
     from PyQt5.QtCore import QByteArray
 except ImportError:
-    error_text = '''Please install PyQt5:
-        pip3 install PyQt5'''
+    error_text = " Please install PyQt5:\npip3 install PyQt5"
     print(error_text)
-    if is_gui():
+
+    @is_gui
+    def gui_help_install():
         root = Tk()
         root.title('IBG-Alarm-Clock')
+        x = (root.winfo_screenwidth() - root.winfo_reqwidth()) / 2
+        y = (root.winfo_screenheight() - root.winfo_reqheight()) / 2
+        root.wm_geometry("+%d+%d" % (x, y))  # По центру экрана
         vidj_error_text = Label(root, text=error_text)
         vidj_error_text.place(x=5, y=5)
         root.mainloop()
+
+    gui_help_install()
+    sys.exit()
 
 
 class AlarmClock(QWidget):
@@ -151,9 +162,8 @@ class AlarmClock(QWidget):
                 os.removedirs(file_path)
 
 
+@is_gui
 def main():
-    is_gui()
-
     if 'win' not in sys.platform and sys.platform != 'linux':
         # Поддерживается только Windows и Linux
         print('The operating system is not defined.'
@@ -164,6 +174,7 @@ def main():
     clock = AlarmClock()
     clock.show()
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()
