@@ -92,6 +92,27 @@ class AlarmClock(QMainWindow):
     BpQAwKgjCSNjVbqFSpYiWJiBRDzD3DsoDCDhyShOgEhcEdSy8WBoXoAUBAjAcmfzUYNONXLRZR
     gQEgAADFMH+RArSodQVABjU+ACiAUgusoBszLzpsmMtBRZdXYQTZGLpJArRhaGAAiFDGLSElaQ
     aq4XIBgJAboAxEaEC5MmV9AAxAABUIADs='''
+    _IMG_RESET_24X24_BASE64 = '''R0lGODlhGAAYAOfDAEoQEWUREVgVFVsVFV8XF18XGGMXF
+    3EXF3IXF2sZGXQXF3EYGHIYGHEZGW0dHW4dHXQdHXMeHm8gHXceHncfH3sfH3wfH4YeHokfH4Q
+    hIYkhIYQkJIkkJHkpKYonJwxPFpEnJ5AoKJkmJqElJRBTFpcpKYoxMZ8sLBVXGRZYG6QtLRRaG
+    xBcGJQzMxdcHBlcHRNfGbIuLpk4OBZiHBphHhVjGxliHhdkHKk2NhZlHBplIBhnGxhnHBhnHas
+    5ORtnH7E8PMk3NxxtHxpuHRtwIR5zIx50Ix11Hx11Ih12JCV1KcVDQx96I8JHRyV6KSt7LrxNT
+    SSCJtlJSSeCKiKFJNlMTCeGKeBMTCGKJCeIKMtTU9pQUN5RUdtTU91TU9FYWNpXV8NfX99aWjO
+    RNTqQPN9cXDCVMt1fXzOXM+BgYOFgYOVgYOJhYSujJt9nZ+JpadtsbCmpJkubTuVra+Ntbedsb
+    OFvb+VubuRvb0iiSORwcDypN+V1deZ4eEqtSDe2Lzy1NUmwRed9fe58fOd+fumAgOiBgUO7Oz+
+    9NuyCguuDg+mEhEO9PES+PEW+PeqIiOqKilm7Vle9U07BRk/CR+uPj1LESlTETe+QkFfEUFLHS
+    ljFUlbGTuyTk2nDZVzJU17JV+2ZmXTCc+6ammDLWWfNYGjOYW3OaGvPZGzQZWrRY23QZm3RZfG
+    kpHjVcnfXb3zXdXrYdH7Zd3/ZeH/Zen3cdYTcfoPdfIjcg4jdgYXffo7giJDhipPijZblj5jlk
+    qDpmqnxpLHyq//////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////yH5BAEKAP8ALAAAAAAYABgAQAj+AP8JHEiwoMGDG
+    xR1amXCIIk9jgDxODgQwEEluHbZykNxII46dO6cAXJCxIgLEDpW6JLmDR49dLQUWNEjRw0yvnL
+    F8gNjxo0UHQUyiWJlipGgBjOEKAGCA9KCPgo9wuTh4AeDBBgcWABFEKRKLRAoaFCAhSRWqUyBs
+    nRoiEELVbgsGWBQjrBftGwg/ZEEC5UsaDaVQqVqzNPDiBMfVAGmjBgvUoJgQBzBTR9BcCYYfOC
+    gYwA7kEaFOYiizY6OMhZ1CtWhoItAnzhRaiSEoIYra+bwIWQo0aAvEnREqnVrlqtVpDQhOkKQw
+    pYyatg0MVDwSbBeupx0TBBDwEFRwHgeeXrRkQYNg0ROyYL1qghiJHH+MJp0KZMZxfjzEwwIADs
+    ='''
 
     def __init__(self, config_name=''):
         super().__init__()
@@ -100,6 +121,7 @@ class AlarmClock(QMainWindow):
         self._get_text()
         self._create_icon_windows()
         self.statusBar()
+        self._get_menu_method()
         self._create_menu()
         self._create_toolbar()
         self.setGeometry(120, 150, 300, 150)
@@ -116,6 +138,17 @@ class AlarmClock(QMainWindow):
                    'menu_file': 'Файл',
                    'menu_exit': 'Выход',
                    'menu_exit_statusbar': 'Выход из программы',
+                   'menu_setting': 'Настройки',
+                   'menu_setting_lang': 'Язык программы (Language)',
+                   'menu_setting_lang_en': 'Английский (English)',
+                   'menu_setting_lang_en_statusbar':
+                       'Установить английский язык (English language)',
+                   'menu_setting_lang_ru': 'Русский (Russian)',
+                   'menu_setting_lang_ru_statusbar':
+                       'Установить русский язык (Russian language)',
+                   'menu_setting_reset': 'Сброс настроек',
+                   'menu_setting_reset_statusbar': 'Сбросить настройки'
+                                                   ' программы',
                    }
         en_text = {'porgam_name': 'IBG-Alarm-Clock',
                    'about': 'About',
@@ -124,6 +157,16 @@ class AlarmClock(QMainWindow):
                    'menu_file': 'File',
                    'menu_exit': 'Exit',
                    'menu_exit_statusbar': 'Exit application',
+                   'menu_setting': 'Settings',
+                   'menu_setting_lang': 'Language',
+                   'menu_setting_lang_en': 'English',
+                   'menu_setting_lang_en_statusbar': 'Set English language',
+                   'menu_setting_lang_ru': 'Russian (Русский)',
+                   'menu_setting_lang_ru_statusbar': 'Set Russian language',
+                   'menu_setting_lang_statusbar': 'Change the language'
+                                                  ' of the program',
+                   'menu_setting_reset': 'Reset',
+                   'menu_setting_reset_statusbar': 'Reset program settings',
                    }
         if not hasattr(self, 'config'):
             self.config = {}
@@ -184,34 +227,90 @@ class AlarmClock(QMainWindow):
         return QImage.fromData(icon_bytes, format)
 
     def _create_icon_windows(self):
-        '''Создание иконки в верхнем левом углу окна в ОС Windows'''
+        '''Создание иконки в верхнем левом углу окна в ОС Windows, а так же
+        иконки панели задач для Linux'''
         self.setWindowIcon(
             QIcon(QPixmap.fromImage(
                 self.__class__._base64_to_qimge(self._IMG_CLOCK_48X48_BASE64,
                                                 'GIF'))))
 
-    def _get_menu_method(self):
-        methods = {}
+    def _get_menu_method(self, a=True):
+        self.methods = {}
         # methods['exit_action'] = QAction(QIcon('exit.png'), '&Exit', self)
-        methods['exit_action'] = \
+        self.methods['exit_action'] = \
             QAction(
                 QIcon(
                     QPixmap.fromImage(
                         self._base64_to_qimge(self._IMG_EXIT_24X24_BASE64,
                                               'GIF'))),
                 self.texts['menu_exit'], self)
-        methods['exit_action'].setStatusTip(self.texts['menu_exit_statusbar'])
-        methods['exit_action'].triggered.connect(qApp.quit)
-        return methods
+        self.methods['exit_action'].\
+            setStatusTip(self.texts['menu_exit_statusbar'])
+        self.methods['exit_action'].triggered.connect(qApp.quit)
+
+        self.methods['lang_setting_action_en'] = \
+            QAction(self.texts['menu_setting_lang_en'], self)
+        self.methods['lang_setting_action_en'].\
+            setStatusTip(self.texts['menu_setting_lang_en_statusbar'])
+        self.methods['lang_setting_action_en'].triggered.\
+            connect(self._set_language_en)
+        lang_status = True if self.config['language'] == 'en_EN' else False
+        self.methods['lang_setting_action_en'].setCheckable(True)
+        self.methods['lang_setting_action_en'].setChecked(lang_status)
+
+        self.methods['lang_setting_action_ru'] = \
+            QAction(self.texts['menu_setting_lang_ru'], self)
+        self.methods['lang_setting_action_ru'].\
+            setStatusTip(self.texts['menu_setting_lang_ru_statusbar'])
+        self.methods['lang_setting_action_ru'].triggered.\
+            connect(self._set_language_ru)
+        lang_status = True if self.config['language'] == 'ru_RU' else False
+        self.methods['lang_setting_action_ru'].setCheckable(True)
+        self.methods['lang_setting_action_ru'].setChecked(lang_status)
+
+        self.methods['reset_setting_action'] = \
+            QAction(
+                QIcon(
+                    QPixmap.fromImage(
+                        self._base64_to_qimge(self._IMG_RESET_24X24_BASE64,
+                                              'GIF'))),
+                self.texts['menu_setting_reset'], self)
+        self.methods['reset_setting_action'].\
+            setStatusTip(self.texts['menu_setting_reset_statusbar'])
+        self.methods['reset_setting_action'].\
+            triggered.connect(self._reset_settings)
 
     def _create_menu(self):
         menubar = self.menuBar()
-        fileMenu = menubar.addMenu(self.texts['menu_file'])
-        fileMenu.addAction(self._get_menu_method()['exit_action'])
+        file_menu = menubar.addMenu(self.texts['menu_file'])
+        file_menu.addAction(self.methods['exit_action'])
+
+        setting_menu = menubar.addMenu(self.texts['menu_setting'])
+        lng_settings_menu = setting_menu.addMenu(self.
+                                                 texts['menu_setting_lang'])
+        lng_settings_menu.addAction(self.methods['lang_setting_action_en'])
+        lng_settings_menu.addAction(self.methods['lang_setting_action_ru'])
+        setting_menu.addAction(self.methods['reset_setting_action'])
 
     def _create_toolbar(self):
         self.toolbar = self.addToolBar('Exit')
-        self.toolbar.addAction(self._get_menu_method()['exit_action'])
+        self.toolbar.addAction(self.methods['exit_action'])
+
+    def _set_language(self, lang):
+        self.config['language'] = lang
+        self._save_config()
+        self.__init__()
+        # self.methods['lang_setting_action_ru'].setChecked(lang)
+
+    def _set_language_ru(self, lang):
+        self._set_language('ru_RU')
+
+    def _set_language_en(self, lang):
+        self._set_language('en_EN')
+
+    def _reset_settings(self):
+        self._del_config()
+        self.__init__()
 
 
 @is_gui
