@@ -107,13 +107,11 @@ class AlarmClock(QWidget):
                    'exit': 'Exit',
                    'open_window': 'Show alarm clocks',
                    }
-        # if self.config:
-        if False:
-            language = self.config['language']
-        else:
-            language = getdefaultlocale()[0]
-            self.config['language'] = language
-        if language == 'ru_RU':
+        if not hasattr(self, 'config'):
+            self.config = {}
+        if 'language' not in self.config:
+            self.config['language'] = getdefaultlocale()[0]
+        if self.config['language'] == 'ru_RU':
             self.texts = ru_text
         else:
             self.texts = en_text
