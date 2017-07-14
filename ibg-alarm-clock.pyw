@@ -174,7 +174,7 @@ class AlarmClock(QMainWindow):
         quit_action = QAction(self.texts['tray_menu_exit'], self)
         show_action.triggered.connect(self.show)
         hide_action.triggered.connect(self.hide)
-        quit_action.triggered.connect(qApp.quit)
+        quit_action.triggered.connect(self._quit)
         tray_menu = QMenu()
         tray_menu.addAction(show_action)
         tray_menu.addAction(hide_action)
@@ -212,7 +212,7 @@ class AlarmClock(QMainWindow):
             else:
                 self.config = {}
 
-    def _get_menu_method(self, a=True):
+    def _get_menu_method(self):
         self.methods = {}
         # methods['exit_action'] = QAction(QIcon('exit.png'), '&Exit', self)
         self.methods['exit_action'] = \
@@ -224,7 +224,7 @@ class AlarmClock(QMainWindow):
                 self.texts['menu_exit'], self)
         self.methods['exit_action'].\
             setStatusTip(self.texts['menu_exit_statusbar'])
-        self.methods['exit_action'].triggered.connect(qApp.quit)
+        self.methods['exit_action'].triggered.connect(self._quit)
 
         self.methods['lang_setting_action_en'] = \
             QAction(self.texts['menu_setting_lang_en'], self)
@@ -319,7 +319,7 @@ class AlarmClock(QMainWindow):
 
     def _reload(self):
         GlobVar.reload = True
-        qApp.quit()
+        self._quit()
 
     def _reset_settings(self):
         self._del_config()
@@ -352,6 +352,10 @@ class AlarmClock(QMainWindow):
 
     def _set_language_ru(self, lang):
         self._set_language('ru_RU')
+
+    def _quit(self):
+        self._save_config()
+        qApp.quit()
 
     def closeEvent(self, event):
         '''Переопределение метода closeEvent, для перехвата события закрытия
