@@ -28,7 +28,7 @@ def is_gui(function_to_decorate):
 
 try:
     from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, \
-        qApp  # pip3 install PyQt5
+        qApp, QSystemTrayIcon, QMenu  # pip3 install PyQt5
     from PyQt5.QtGui import QImage, QIcon, QPixmap
     from PyQt5.QtCore import QByteArray
 except ImportError:
@@ -48,6 +48,10 @@ except ImportError:
 
     gui_help_install()
     sys.exit()
+
+
+class GlobVar:
+    reload = False
 
 
 class AlarmClock(QMainWindow):
@@ -124,6 +128,7 @@ class AlarmClock(QMainWindow):
         self._get_menu_method()
         self._create_menu()
         self._create_toolbar()
+        self._create_tray_icon()
         self.setGeometry(120, 150, 300, 150)
         self.setWindowTitle(self.texts['porgam_name'])
         self.show()
@@ -157,6 +162,25 @@ class AlarmClock(QMainWindow):
     def _create_toolbar(self):
         self.toolbar = self.addToolBar('Exit')
         self.toolbar.addAction(self.methods['exit_action'])
+
+    def _create_tray_icon(self):
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon(QPixmap.fromImage(
+            self._base64_to_qimge(self._IMG_CLOCK_48X48_BASE64, 'GIF'))))
+
+        # Меню у иконки в трее:
+        show_action = QAction(self.texts['tray_menu_show'], self)
+        hide_action = QAction(self.texts['tray_menu_hide'], self)
+        quit_action = QAction(self.texts['tray_menu_exit'], self)
+        show_action.triggered.connect(self.show)
+        hide_action.triggered.connect(self.hide)
+        quit_action.triggered.connect(qApp.quit)
+        tray_menu = QMenu()
+        tray_menu.addAction(show_action)
+        tray_menu.addAction(hide_action)
+        tray_menu.addAction(quit_action)
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.show()
 
     def _del_config(self):
         if 'win' in sys.platform:
@@ -252,6 +276,9 @@ class AlarmClock(QMainWindow):
                    'menu_setting_reset': 'Сброс настроек',
                    'menu_setting_reset_statusbar': 'Сбросить настройки'
                                                    ' программы',
+                   'tray_menu_show': 'Развернуть окно',
+                   'tray_menu_hide': 'Свернуть окно',
+                   'tray_menu_exit': 'Выход',
                    }
         en_text = {'porgam_name': 'IBG-Alarm-Clock',
                    'about': 'About',
@@ -270,6 +297,9 @@ class AlarmClock(QMainWindow):
                                                   ' of the program',
                    'menu_setting_reset': 'Reset',
                    'menu_setting_reset_statusbar': 'Reset program settings',
+                   'tray_menu_show': 'Show',
+                   'tray_menu_hide': 'Hide',
+                   'tray_menu_exit': 'Exit',
                    }
         if not hasattr(self, 'config'):
             self.config = {}
@@ -280,9 +310,14 @@ class AlarmClock(QMainWindow):
         else:
             self.texts = en_text
 
+    def _reload(self):
+        GlobVar.reload = True
+        qApp.quit()
+
     def _reset_settings(self):
         self._del_config()
-        self.__init__()
+        self.config = {}
+        self._reload()
 
     def _save_config(self):
         json_config = json.dumps(self.config)
@@ -303,8 +338,7 @@ class AlarmClock(QMainWindow):
     def _set_language(self, lang):
         self.config['language'] = lang
         self._save_config()
-        self.__init__()
-        # self.methods['lang_setting_action_ru'].setChecked(lang)
+        self._reload()
 
     def _set_language_en(self, lang):
         self._set_language('en_EN')
@@ -321,9 +355,15 @@ def main():
               ' Supported OS: Windows, Linux.')
         sys.exit()
 
-    app = QApplication(sys.argv)
-    clock = AlarmClock()
-    sys.exit(app.exec_())
+    GlobVar.reload = True
+    while GlobVar.reload:
+        GlobVar.reload = False
+        app = QApplication(sys.argv)
+        clock = AlarmClock()
+        # sys.exit(app.exec_())
+        app.exec_()
+        del clock
+        del app
 
 
 if __name__ == '__main__':
