@@ -196,9 +196,12 @@ class AlarmClock(QMainWindow):
 
     def _get_config(self):
         if 'win' in sys.platform:
-            reestr = winreg.CreateKey(winreg.HKEY_CURRENT_USER,
-                                      'Software\\' + self.config_name)
-            self.config = json.loads(winreg.QueryValue(reestr, None))
+            try:
+                reestr = winreg.QueryValue(winreg.HKEY_CURRENT_USER,
+                                           'Software\\' + self.config_name)
+            except Exception:
+                reestr = '{}'
+            self.config = json.loads(reestr)
         else:
             os.chdir(os.path.expanduser('~'))
             file_path = os.path.join('.config/ibg-alarm-clock',
@@ -279,6 +282,8 @@ class AlarmClock(QMainWindow):
                    'tray_menu_show': 'Развернуть окно',
                    'tray_menu_hide': 'Свернуть окно',
                    'tray_menu_exit': 'Выход',
+                   'tray_minimized_message': 'Приложение свёрнуто в'
+                                             ' системный трей',
                    }
         en_text = {'porgam_name': 'IBG-Alarm-Clock',
                    'about': 'About',
@@ -300,6 +305,8 @@ class AlarmClock(QMainWindow):
                    'tray_menu_show': 'Show',
                    'tray_menu_hide': 'Hide',
                    'tray_menu_exit': 'Exit',
+                   'tray_minimized_message': 'Application was minimized'
+                                             ' to Tray',
                    }
         if not hasattr(self, 'config'):
             self.config = {}
@@ -345,6 +352,18 @@ class AlarmClock(QMainWindow):
 
     def _set_language_ru(self, lang):
         self._set_language('ru_RU')
+
+    def closeEvent(self, event):
+        '''Переопределение метода closeEvent, для перехвата события закрытия
+         окна. Окно будет сворачиваться в системный трей'''
+        event.ignore()
+        self.hide()
+        self.tray_icon.showMessage(
+            self.texts['porgam_name'],
+            self.texts['tray_minimized_message'],
+            QSystemTrayIcon.Information,
+            2000
+        )
 
 
 @is_gui
