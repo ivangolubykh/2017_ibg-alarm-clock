@@ -184,7 +184,7 @@ class AlarmClock(QMainWindow):
         setting_menu.addAction(self.methods['reset_setting_action'])
 
     def _create_toolbar(self):
-        self.toolbar = self.addToolBar('main_toolbar')
+        self.toolbar = self.addToolBar(self.texts['name_toolbar_01'])
         self.toolbar.addAction(self.methods['to_tray_action'])
         self.toolbar.addAction(self.methods['exit_action'])
 
@@ -336,6 +336,7 @@ class AlarmClock(QMainWindow):
                                              ' системный трей',
                    'menu_to_tray': 'Свернуть окно в трей',
                    'menu_to_tray_statusbar': 'Свернуть окно в трей',
+                   'name_toolbar_01': 'Основная панель инструментов',
                    }
         en_text = {'porgam_name': 'IBG-Alarm-Clock',
                    'about': 'About',
@@ -361,6 +362,7 @@ class AlarmClock(QMainWindow):
                                              ' to Tray',
                    'menu_to_tray': 'Minimize the window to the tray',
                    'menu_to_tray_statusbar': 'Minimize the window to the tray',
+                   'name_toolbar_01': 'Main Toolbar',
                    }
         if not hasattr(self, 'config'):
             self.config = {}
