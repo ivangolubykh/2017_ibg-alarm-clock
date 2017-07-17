@@ -55,6 +55,29 @@ class GlobVar:
 
 
 class AlarmClock(QMainWindow):
+    _IMG_ADD_ALARM_24X24_BASE64 = '''R0lGODlhGAAYAOfLANkAAdwAAN4BAOQAAOUAAOYAA
+    OgAAOUACekAAecADO8AAN8FAPAAAO8ABfIAAPAABvMAAPQAAPMACfQACuoEAuoEDvYCAP0ABeA
+    JBv8AE/cGAOENCO0MBewNGe4RGu8TEvkQGecbHvIZFfIZHekdH+ofIPMcJeEjKfQeJf8cHfYgI
+    OwjIuYpLe8nKvkmKfooKugtLvooMOouL/QuNPUvNe0zOP8vNO40OfI4O+09QPU7PeZBQ+4/Qfk
+    /OulDRf89Q+xHSPRFS/dHR/9GRfZITf9KTeZSVP1NTP9PTfJVVetXWPNWVu9aW/5XVf1XW/BbX
+    PhaWf9YXOpeYPNdXv9bXe1gYvtdW+9hXvVgYPZhYfdiYv9hX/ljY/9iYOZpaf9iZvNmZ+hravx
+    mZv5nZ/9oZ+xvbv9rafNucP9scPBycfdxbv5vcOt1d/9xcflzdf9ycv9zc+94eul6ePZ3dvd4d
+    /F6fP93dO19e/94evp6eex+gf95e+5+fPx8e/V+f/1+fP+AfvmCg/+BhfuDhP2Fhv6Gh/mIhfi
+    Ii/+HiPmJjP+Iif+Jiv6Miv6NkP+Okf+PkvuRkf2Tk/6UlO2al/+Vlf+WlvuYlfyZlv2al/6bm
+    P2bnvqfn/+eof2iovGmp/6jo/qlo/+kpPmnqvyopfaqq/+qp/+rqPmtrv+sqf+sr/CyrvyvsPa
+    xr/izsf6ysvm0sv+0tP+1tfy2tP23tf64tv+5t/K9vP+6uPi8vfW/vvu+v/+9wP3Awf7Bw//Dx
+    fzFxf3Gxv7Hx//JyP/Lyv3Oy/jS0//R1PrU1f3e3f/i4P7//AAAAAAAAAAAAAAAAAAAAAAAAAA
+    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEKAP8ALAAAAAAYABgAAAj+AP8JHEiwo
+    MGDA1vJCiZqDh1Rwl7hQlhwk6VaoEYJ83UJkiUuuigKFOUGmTFhv3bNclXq0ycdpxAO6jPqmDB
+    etWChCsUJkyNEiJy8SGQQCjJivGatKtWJ0s9CeNqYMfOFSMFLgYDBaqlJEiJAUc1saVJkyBAQp
+    AbmGUQrVdNGhP60ITMWyQ8bKTJciFDgiUA1rkJlagQVjRgqSHrEUCGigQIFBSKvEGjIUSRHytq
+    0USZGmecWygooIyE6Mg+BWAQBYqQMjxZlU5SdSVNDWQXPHZQlKADj3yErdszg8bwCtrIaNUQ/8
+    cwjdIEBdcA42XJEiGfPsT03uH498oAq/3CjvOAA+oPnLMqCJJGwRJkJP8pWRA5R7N+VAg08KIN
+    AQ1l/zyOYN4EJzg3gg0AwRKYABBEw2KCDEUQIAWSRsSAQEJE1AGGEHHZI4QA7DBRHhhCUWKKEJ
+    0IQ2QJ8FLTBABk24JiJj0E2wAInGGTEAgPAGNmPQBawAABhHMQKGwn4GOSKeqgi0h099uhdlJO
+    INJAXZXiixAYbSOFJGXJYeVAutlgZEAA7'''
     _IMG_CLOCK_48X48_BASE64 = '''R0lGODlhMAAwAOf/AAASrgATrwAUsAAWqQAXqgkXtAAas
     QAbswAcqwActAAerQAetgAgrwAhsQAiqgAisgMjswgktAwlrQwltQAqpwAptgAqrgAqrwAqtwA
     rsQAtpAAtswAurBcqowwvthAxsAA3rBIyqRMysRg0pQc5thw0tB02pws6tw46sSA2tiA3sBM7u
@@ -157,6 +180,9 @@ class AlarmClock(QMainWindow):
         self.setWindowTitle(self.texts['porgam_name'])
         self.show()
 
+    def _add_alarm(self):
+        pass
+
     @staticmethod
     def _base64_to_qimge(base64_text, format='GIF'):
         icon_bytes64 = base64.b64decode(base64_text.encode())
@@ -176,6 +202,9 @@ class AlarmClock(QMainWindow):
         file_menu = menubar.addMenu(self.texts['menu_file'])
         file_menu.addAction(self.methods['exit_action'])
 
+        file_menu = menubar.addMenu(self.texts['menu_alarm'])
+        file_menu.addAction(self.methods['add_alarm_action'])
+
         setting_menu = menubar.addMenu(self.texts['menu_setting'])
         lng_settings_menu = setting_menu.addMenu(self.
                                                  texts['menu_setting_lang'])
@@ -185,6 +214,7 @@ class AlarmClock(QMainWindow):
 
     def _create_toolbar(self):
         self.toolbar = self.addToolBar(self.texts['name_toolbar_01'])
+        self.toolbar.addAction(self.methods['add_alarm_action'])
         self.toolbar.addAction(self.methods['to_tray_action'])
         self.toolbar.addAction(self.methods['exit_action'])
 
@@ -256,6 +286,15 @@ class AlarmClock(QMainWindow):
             methods.setStatusTip(statusbar_text)
             methods.triggered.connect(triggered)
             return methods
+
+        self.methods['add_alarm_action'] = _generate_method(
+            self=self, method_name='add_alarm_action',
+            img=self._IMG_ADD_ALARM_24X24_BASE64,
+            img_type='GIF',
+            menu_text=self.texts['menu_add_alarm'],
+            statusbar_text=self.texts['menu_add_alarm_statusbar'],
+            triggered=self._add_alarm,
+            )
 
         self.methods['exit_action'] = _generate_method(
             self=self, method_name='exit_action',
@@ -337,6 +376,9 @@ class AlarmClock(QMainWindow):
                    'menu_to_tray': 'Свернуть окно в трей',
                    'menu_to_tray_statusbar': 'Свернуть окно в трей',
                    'name_toolbar_01': 'Основная панель инструментов',
+                   'menu_add_alarm': 'Добавить новый будильник',
+                   'menu_add_alarm_statusbar': 'Добавить новый будильник',
+                   'menu_alarm': 'Будильники',
                    }
         en_text = {'porgam_name': 'IBG-Alarm-Clock',
                    'about': 'About',
@@ -363,6 +405,9 @@ class AlarmClock(QMainWindow):
                    'menu_to_tray': 'Minimize the window to the tray',
                    'menu_to_tray_statusbar': 'Minimize the window to the tray',
                    'name_toolbar_01': 'Main Toolbar',
+                   'menu_add_alarm': 'Add a new alarm',
+                   'menu_add_alarm_statusbar': 'Add a new alarm',
+                   'menu_alarm': 'Alarms',
                    }
         if not hasattr(self, 'config'):
             self.config = {}
