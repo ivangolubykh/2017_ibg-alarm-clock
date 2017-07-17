@@ -245,13 +245,13 @@ class AlarmClock(QMainWindow):
         def _generate_method(self=None, method_name=None, img=None,
                              img_type=None, menu_text=None,
                              statusbar_text=None, triggered=None):
-            if (self is None or method_name is None or menu_text is None
-                or statusbar_text is None or triggered is None):
+            if self is None or method_name is None or menu_text is None\
+               or statusbar_text is None or triggered is None:
                 return None
             if img is None or img_type is None:
-                methods=QAction(menu_text, self)
+                methods = QAction(menu_text, self)
             else:
-                methods=QAction(
+                methods = QAction(
                     QIcon(QPixmap.fromImage(self.
                                             _base64_to_qimge(img, img_type))),
                     menu_text, self)
