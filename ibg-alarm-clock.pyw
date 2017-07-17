@@ -184,10 +184,8 @@ class AlarmClock(QMainWindow):
         setting_menu.addAction(self.methods['reset_setting_action'])
 
     def _create_toolbar(self):
-        self.toolbar = self.addToolBar('to_tray')
+        self.toolbar = self.addToolBar('main_toolbar')
         self.toolbar.addAction(self.methods['to_tray_action'])
-
-        self.toolbar = self.addToolBar('exit')
         self.toolbar.addAction(self.methods['exit_action'])
 
     def _create_tray_icon(self):
