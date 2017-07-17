@@ -117,6 +117,30 @@ class AlarmClock(QMainWindow):
     gYwA7kEaFOYiizY6OMhZ1CtWhoItAnzhRaiSEoIYra+bwIWQo0aAvEnREqnVrlqtVpDQhOkKQw
     pYyatg0MVDwSbBeupx0TBBDwEFRwHgeeXrRkQYNg0ROyYL1qghiJHH+MJp0KZMZxfjzEwwIADs
     ='''
+    _IMG_TO_TRAY_24X24_BASE64 = '''R0lGODlhGAAYAOf/AAAkhQAphwAtjQAsogAtmwAtowA
+    tpAA0kwAzoAswpwA1mwA2lQA3nQE4mBQznAY5oQw7lQA+nBs1pgA/nw07ow48nABApgBBoQBBq
+    BQ9nwJCqQBEqQlEpBpAogpEqwBJrwBKqRFGpxFGrQBLsgBMswBNshZIsARNtABPtABRsChFtgB
+    RtxtJuAxPtipGtx1LrABTuB5KuQBUuQBUuhBQtyBLuwBVvABWtQBWvRNRuABXvgBYtzBKtQBYv
+    TFLtgRYvwBZxBlTughZuQBbwABcuilQuQlZwABdwh5WsQBdygBftwBewyxTsCBXsgBeyy1UsQB
+    gvxFbwgBhuQBgxQBgxgBhwBRcvQBhyDBWsxhdxANjyidbtgBoxipduApk0g5lzCFjty9fuxJmz
+    QBt2i9krABu1DRivwBv2htp0AZv1ipnwgBx3TpmokpfwAxw1wBz3zRpqy1pxAB04AB14QB24gB
+    45SdwyzRtyQB65xt21gV76C1zzgx86U5txjJ20QCC9gCD8ACD9xV+6wCG5ACE+DV41ACF+Sl91
+    zV7yQCH+QCI+h2C4i1/2R+B7yGF3w6L6gCO+jSD3ld+qlmArFqBrV2EsWOB1mCHtGuD0jmR7G6
+    F1WWLuHGI2HWJzGGRvHmJ1HqK1WyTwHWO2HyM2HaP2W6VwneQ2niR23+P22qXynmS3GyYy1Sd7
+    YCT13eYwIKS3YGU2YOT3oKV2nSbyISU4IOW24aW4oWY3YqY14aZ3n6fx4ib4Imc4Yue45Kf35O
+    g4JSh4Yan0JCi6JWi4paj5JKl6pil5p6m4Zqn55uo6Zyp6qqsqZ2q66utqqOr55+s7a6wrZ+v6
+    aau6qCw6rWwr7axsLGzr6Ky7Kmy7bS2s7q1tLW3tLe5tqy37L64t7i6t6247bq8ucG8ury+u77
+    BvcLEwbXF8sTGw77F9cfJxsHJ+MrMycfK9NHNvsjL9cnM98rN+NHRyM/O89DP9NHT0NHQ9dLR9
+    trV09va0eTj2uri2uno3+7t5PT38/7//P///yH5BAEKAP8ALAAAAAAYABgAAAj+AP/9y+MoEqN
+    DhfzssXMnjhozYbpswYLlRQeB/1iZs1ev3rx58uTBe/fOnUl36lKiy4Xl36Bu4LBduyZtWjRnz
+    5QpS4YMmbFixIQJY4bpX6Zjw4YB++WrFy9eu3blynXLFi1asbKiGgXhEa5bVGvVkgULlqpTpki
+    REgXq0ydOnDRZqrCoUxsfePPW4FGjBou/LlyoGFykzwU3EgYUWMy4sWPGAxJUyEIAgeXLmDNnd
+    lAhigIGoEOLHj2awoUfFFKrXs26tYUNQTBomE27tm3bHkLQ+MC7t+/fwEt8aHGiuPHjyJPTQFF
+    CBoznMGRIn05dOvToKEwY2f5DiJAdO5rUILmBpHz5JkO2G4kCQ8SU90CC6bu3rpw4btuyafs2r
+    h2ZI+9NAYMHYnzxhRO6eANNM8ss0ww025CTDj37sDGFgWLIUEIZaKDhhSvUWFNNNuGcEw8++fD
+    Tjz9wfNFhGUfI8MYZZ4yByCSSUFLJJZt4Ekopq6wyCxg0nvHGEUnQoSQdcrjh5JNQOvnGknW8J
+    wgfWGap5ZZbNiIFDHoEIuaYZJZZJiAC9VCHIYYQ4qabbCYiJ5t0JgKJEhj9w0EECwgAQAACHNB
+    ABByAkMINREDBBRQYBQQAOw=='''
 
     def __init__(self, config_name=''):
         super().__init__()
@@ -160,7 +184,10 @@ class AlarmClock(QMainWindow):
         setting_menu.addAction(self.methods['reset_setting_action'])
 
     def _create_toolbar(self):
-        self.toolbar = self.addToolBar('Exit')
+        self.toolbar = self.addToolBar('to_tray')
+        self.toolbar.addAction(self.methods['to_tray_action'])
+
+        self.toolbar = self.addToolBar('exit')
         self.toolbar.addAction(self.methods['exit_action'])
 
     def _create_tray_icon(self):
@@ -258,6 +285,18 @@ class AlarmClock(QMainWindow):
         self.methods['reset_setting_action'].\
             triggered.connect(self._reset_settings)
 
+        self.methods['to_tray_action'] = \
+            QAction(
+                QIcon(
+                    QPixmap.fromImage(
+                        self._base64_to_qimge(self._IMG_TO_TRAY_24X24_BASE64,
+                                              'GIF'))),
+                self.texts['menu_to_tray'], self)
+        self.methods['to_tray_action'].\
+            setStatusTip(self.texts['menu_to_tray_statusbar'])
+        self.methods['to_tray_action'].triggered.\
+            connect(self._minimize_to_tray)
+
     def _get_text(self):
         ''' Выбор языка текстов программы
         '''
@@ -284,6 +323,8 @@ class AlarmClock(QMainWindow):
                    'tray_menu_exit': 'Выход',
                    'tray_minimized_message': 'Приложение свёрнуто в'
                                              ' системный трей',
+                   'menu_to_tray': 'Свернуть окно в трей',
+                   'menu_to_tray_statusbar': 'Свернуть окно в трей',
                    }
         en_text = {'porgam_name': 'IBG-Alarm-Clock',
                    'about': 'About',
@@ -307,6 +348,8 @@ class AlarmClock(QMainWindow):
                    'tray_menu_exit': 'Exit',
                    'tray_minimized_message': 'Application was minimized'
                                              ' to Tray',
+                   'menu_to_tray': 'Minimize the window to the tray',
+                   'menu_to_tray_statusbar': 'Minimize the window to the tray',
                    }
         if not hasattr(self, 'config'):
             self.config = {}
@@ -316,6 +359,16 @@ class AlarmClock(QMainWindow):
             self.texts = ru_text
         else:
             self.texts = en_text
+
+    def _minimize_to_tray(self):
+        self.hide()
+        self.tray_icon.showMessage(
+            self.texts['porgam_name'],
+            self.texts['tray_minimized_message'],
+            QIcon(QPixmap.fromImage(
+                self._base64_to_qimge(self._IMG_CLOCK_48X48_BASE64, 'GIF'))),
+            2000
+        )
 
     def _reload(self):
         GlobVar.reload = True
@@ -361,13 +414,7 @@ class AlarmClock(QMainWindow):
         '''Переопределение метода closeEvent, для перехвата события закрытия
          окна. Окно будет сворачиваться в системный трей'''
         event.ignore()
-        self.hide()
-        self.tray_icon.showMessage(
-            self.texts['porgam_name'],
-            self.texts['tray_minimized_message'],
-            QSystemTrayIcon.Information,
-            2000
-        )
+        self._minimize_to_tray()
 
 
 @is_gui
