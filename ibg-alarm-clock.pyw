@@ -241,61 +241,74 @@ class AlarmClock(QMainWindow):
 
     def _get_menu_method(self):
         self.methods = {}
-        # methods['exit_action'] = QAction(QIcon('exit.png'), '&Exit', self)
-        self.methods['exit_action'] = \
-            QAction(
-                QIcon(
-                    QPixmap.fromImage(
-                        self._base64_to_qimge(self._IMG_EXIT_24X24_BASE64,
-                                              'GIF'))),
-                self.texts['menu_exit'], self)
-        self.methods['exit_action'].\
-            setStatusTip(self.texts['menu_exit_statusbar'])
-        self.methods['exit_action'].triggered.connect(self._quit)
 
-        self.methods['lang_setting_action_en'] = \
-            QAction(self.texts['menu_setting_lang_en'], self)
-        self.methods['lang_setting_action_en'].\
-            setStatusTip(self.texts['menu_setting_lang_en_statusbar'])
-        self.methods['lang_setting_action_en'].triggered.\
-            connect(self._set_language_en)
+        def _generate_method(self=None, method_name=None, img=None,
+                             img_type=None, menu_text=None,
+                             statusbar_text=None, triggered=None):
+            if (self is None or method_name is None or menu_text is None
+                or statusbar_text is None or triggered is None):
+                return None
+            if img is None or img_type is None:
+                methods=QAction(menu_text, self)
+            else:
+                methods=QAction(
+                    QIcon(QPixmap.fromImage(self.
+                                            _base64_to_qimge(img, img_type))),
+                    menu_text, self)
+            methods.setStatusTip(statusbar_text)
+            methods.triggered.connect(triggered)
+            return methods
+
+        self.methods['exit_action'] = _generate_method(
+            self=self, method_name='exit_action',
+            img=self._IMG_EXIT_24X24_BASE64,
+            img_type='GIF',
+            menu_text=self.texts['menu_exit'],
+            statusbar_text=self.texts['menu_exit_statusbar'],
+            triggered=self._quit,
+            )
+
+        self.methods['lang_setting_action_en'] = _generate_method(
+            self=self, method_name='lang_setting_action_en',
+            img=None,
+            img_type=None,
+            menu_text=self.texts['menu_setting_lang_en'],
+            statusbar_text=self.texts['menu_setting_lang_en_statusbar'],
+            triggered=self._set_language_en,
+            )
         lang_status = True if self.config['language'] == 'en_EN' else False
         self.methods['lang_setting_action_en'].setCheckable(True)
         self.methods['lang_setting_action_en'].setChecked(lang_status)
 
-        self.methods['lang_setting_action_ru'] = \
-            QAction(self.texts['menu_setting_lang_ru'], self)
-        self.methods['lang_setting_action_ru'].\
-            setStatusTip(self.texts['menu_setting_lang_ru_statusbar'])
-        self.methods['lang_setting_action_ru'].triggered.\
-            connect(self._set_language_ru)
+        self.methods['lang_setting_action_ru'] = _generate_method(
+            self=self, method_name='lang_setting_action_ru',
+            img=None,
+            img_type=None,
+            menu_text=self.texts['menu_setting_lang_ru'],
+            statusbar_text=self.texts['menu_setting_lang_ru_statusbar'],
+            triggered=self._set_language_ru,
+            )
         lang_status = True if self.config['language'] == 'ru_RU' else False
         self.methods['lang_setting_action_ru'].setCheckable(True)
         self.methods['lang_setting_action_ru'].setChecked(lang_status)
 
-        self.methods['reset_setting_action'] = \
-            QAction(
-                QIcon(
-                    QPixmap.fromImage(
-                        self._base64_to_qimge(self._IMG_RESET_24X24_BASE64,
-                                              'GIF'))),
-                self.texts['menu_setting_reset'], self)
-        self.methods['reset_setting_action'].\
-            setStatusTip(self.texts['menu_setting_reset_statusbar'])
-        self.methods['reset_setting_action'].\
-            triggered.connect(self._reset_settings)
+        self.methods['reset_setting_action'] = _generate_method(
+            self=self, method_name='reset_setting_action',
+            img=self._IMG_RESET_24X24_BASE64,
+            img_type='GIF',
+            menu_text=self.texts['menu_setting_reset'],
+            statusbar_text=self.texts['menu_setting_reset_statusbar'],
+            triggered=self._reset_settings,
+            )
 
-        self.methods['to_tray_action'] = \
-            QAction(
-                QIcon(
-                    QPixmap.fromImage(
-                        self._base64_to_qimge(self._IMG_TO_TRAY_24X24_BASE64,
-                                              'GIF'))),
-                self.texts['menu_to_tray'], self)
-        self.methods['to_tray_action'].\
-            setStatusTip(self.texts['menu_to_tray_statusbar'])
-        self.methods['to_tray_action'].triggered.\
-            connect(self._minimize_to_tray)
+        self.methods['to_tray_action'] = _generate_method(
+            self=self, method_name='to_tray_action',
+            img=self._IMG_TO_TRAY_24X24_BASE64,
+            img_type='GIF',
+            menu_text=self.texts['menu_to_tray'],
+            statusbar_text=self.texts['menu_to_tray_statusbar'],
+            triggered=self._minimize_to_tray,
+            )
 
     def _get_text(self):
         ''' Выбор языка текстов программы
