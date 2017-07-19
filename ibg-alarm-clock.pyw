@@ -28,7 +28,8 @@ def is_gui(function_to_decorate):
 
 try:
     from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, \
-        qApp, QSystemTrayIcon, QMenu  # pip3 install PyQt5
+        qApp, QSystemTrayIcon, QMenu, QWidget, QLabel, \
+        QVBoxLayout  # pip3 install PyQt5
     from PyQt5.QtGui import QImage, QIcon, QPixmap
     from PyQt5.QtCore import QByteArray
 except ImportError:
@@ -178,10 +179,32 @@ class AlarmClock(QMainWindow):
         self._create_tray_icon()
         self.setGeometry(120, 150, 300, 150)
         self.setWindowTitle(self.texts['porgam_name'])
+        self._init_alarm()
         self.show()
 
+    def _init_alarm(self):
+        self.list_alarms = []
+
+        central_widget = QWidget(self)  # Создаём центральный виджет
+        # Устанавливаем центральный виджет
+        self.setCentralWidget(central_widget)
+        self.grid_layout = QVBoxLayout()  # Создаём QVBoxLayout
+        # Устанавливаем данное размещение в центральный виджет
+        central_widget.setLayout(self.grid_layout)
+        # Добавляю распорку, чтобы занять пустое место
+        self.grid_layout.addStretch()
+
     def _add_alarm(self):
-        pass
+        self.list_alarms.append({'type': 'timer', 'time': '0',
+                                 'name': 'Alarm 01', 'active': True})
+        self.list_alarms[len(self.list_alarms) - 1]['label'] = QLabel()
+        self.list_alarms[len(self.list_alarms) - 1]['label'].\
+            setText(self.list_alarms[0]['name'])
+        self.list_alarms[len(self.list_alarms) - 1]['label'].heightForWidth(10)
+        self.grid_layout.insertWidget(
+            0, self.list_alarms[len(self.list_alarms) - 1]['label'])
+
+        # self.grid_layout.removeWidget(self.list_alarms[0]['label'])
 
     @staticmethod
     def _base64_to_qimge(base64_text, format='GIF'):
